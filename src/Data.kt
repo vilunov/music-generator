@@ -1,50 +1,22 @@
 import java.lang.Math.floorDiv
 import java.lang.Math.floorMod
 
-enum class ChordType {
-    MajorTriad, MinorTriad;
-
-    fun offsets() : List<Int> {
-        return when(this) {
-            MajorTriad -> majorOffsets
-            MinorTriad -> minorOffsets
-        }
-    }
-
-    operator fun get(i: Int) : Int {
-        val note: Int = floorMod(i, 3)
-        val octave: Int = floorDiv(i, 3)
-        return offsets()[note] + octave * 12
-    }
-
-    companion object {
-        private val majorOffsets = intArrayOf(0, 4, 7).toList()
-        private val minorOffsets = intArrayOf(0, 3, 7).toList()
-    }
-}
-
-class Chord(val root: Int, val type: ChordType) {
-    fun midiNotes() : IntArray {
-        return type.offsets().map { i -> i + root }.toIntArray()
-    }
-
-    fun equals(other: Chord) : Boolean {
-        return root == other.root && type == other.type
-    }
-
+class Chord(val steps: List<Int>, val scale: Scale) {
+    fun midiNotes() : IntArray = steps.map { scale[it] }.toIntArray()
+    fun equals(other: Chord) : Boolean = scale == other.scale && steps == other.steps
     operator fun get(idx: Int) : Int {
-        return type[idx] + root
+        val note: Int = floorMod(idx, 3)
+        val octave: Int = floorDiv(idx, 3)
+        return steps[note] + octave * 7
     }
 }
 
 enum class ScaleType {
     Major, Minor;
 
-    fun offsets() : List<Int> {
-        return when (this) {
-            Major -> majorOffsets
-            Minor -> minorOffsets
-        }
+    fun offsets() = when (this) {
+        Major -> majorOffsets
+        Minor -> minorOffsets
     }
 
     operator fun get(i: Int) : Int {
@@ -60,17 +32,9 @@ enum class ScaleType {
 }
 
 class Scale(val root: Int, val type: ScaleType) {
-    fun midiNotes() : IntArray {
-        return type.offsets().map { i -> i + root }.toIntArray()
-    }
-
-    operator fun get(i: Int) : Int {
-        return type[i] + root
-    }
-
-    fun equals(other: Scale) : Boolean {
-        return root == other.root && type == other.type
-    }
+    fun midiNotes() : IntArray = type.offsets().map { it + root }.toIntArray()
+    operator fun get(i: Int) : Int = type[i] + root
+    fun equals(other: Scale) : Boolean = root == other.root && type == other.type
 }
 
 class Rhythm(val chordDurations: List<Int>, val noteDurations: List<Int>) {
@@ -95,7 +59,7 @@ class Rhythm(val chordDurations: List<Int>, val noteDurations: List<Int>) {
         }
     }
 
-    fun correspondingChord(idx: Int) : Int? {
-        return collisions[idx]
-    }
+    fun correspondingChord(idx: Int) : Int? = collisions[idx]
 }
+
+class Segment(val rhythm: Rhythm, val startingNote: Int, val endingNote: Int)
