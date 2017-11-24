@@ -57,10 +57,10 @@ class ParticleChords(rand: Random, val scale: Scale, val segment: Segment): Part
 }
 
 fun generateChords(rand: Random, scale: Scale, segment: Segment): List<Chord> {
-    val swarmSize = 10
+    val swarmSize = Settings.Chord.swarm_size
     val particle = applyPSO(
             Array(swarmSize, { ParticleChords(rand, scale, segment) }),
-            rand, 20, 0.9, 0.7, 0.7)
+            rand, Settings.Chord.iterations, Settings.Chord.m, Settings.Chord.c1, Settings.Chord.c2)
     return List(particle.size, { Chord(
             listOf(particle.personalBestBaked[it],
                     particle.personalBestBaked[it] + 2,

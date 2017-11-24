@@ -7,8 +7,8 @@ class ParticleMelody(rand: Random, val scale: Scale, val segment: Segment, val c
     lateinit var personalBestBaked: IntArray
     override val personalBest: DoubleArray
         get() = personalBestBaked.map(Int::toDouble).toDoubleArray()
-    val melody: IntArray
-        get() = personalBestBaked.mapIndexed { idx, i -> step(i, idx) }.toIntArray()
+    lateinit var melody: IntArray
+        private set
     override var personalBestFitness: Int = Int.MAX_VALUE
     override val velocity: DoubleArray = DoubleArray(size, {0.0})
     override val position: DoubleArray = DoubleArray(size, {
@@ -31,16 +31,18 @@ class ParticleMelody(rand: Random, val scale: Scale, val segment: Segment, val c
 
     override fun recalculateFitness() {
         val baked = position.map(::round).map(Long::toInt).toIntArray()
+        val bakedSteps = baked.mapIndexed { idx, i -> step(i, idx) }.toIntArray()
 
         val distance = run {
             fun dst(a: Int, b: Int): Int = (abs(a - b) - 1) * (abs(a - b) - 1)
-            (1 until size).map { dst(baked[it], baked[it - 1]) }.sum() + dst(baked[size - 1], segment.endingNote)
+            (1 until size).map { dst(bakedSteps[it], bakedSteps[it - 1]) }.sum() + dst(bakedSteps[size - 1], segment.endingNote)
         }
 
         currentFitness = distance
 
         if (currentFitness < personalBestFitness) {
             personalBestBaked = baked
+            melody = bakedSteps
             personalBestFitness = currentFitness
         }
     }
@@ -52,9 +54,9 @@ class ParticleMelody(rand: Random, val scale: Scale, val segment: Segment, val c
 }
 
 fun generateMelody(rand: Random, scale: Scale, segment: Segment, chords: List<Chord>): List<Int> {
-    val swarmSize = 50
+    val swarmSize = Settings.Melody.swarm_size
     val particle = applyPSO(
             Array(swarmSize, { ParticleMelody(rand, scale, segment, chords) }),
-            rand, 80, 0.9, 0.7, 0.7)
+            rand, Settings.Melody.iterations, Settings.Melody.m, Settings.Melody.c1, Settings.Melody.c2)
     return List(particle.size, { particle.melody[it] })
 }

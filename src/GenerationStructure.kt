@@ -30,13 +30,25 @@ class ParticleStructure(length: Int, rand: Random): Particle {
     override fun recalculateFitness() {
         val baked = position.map(::round).map(Long::toInt).toIntArray()
 
-        val transitions = (1 until baked.size)
-                .filter { baked[it] != baked[it - 1] }.count()
-
+        val subsequences = run {
+            var cur = baked[0]
+            var total = 0
+            var len = -3
+            for (i in 1 until size) {
+                if (baked[i] == cur) {
+                    len++
+                } else {
+                    total += len * len
+                    len = 0
+                    cur = baked[i]
+                }
+            }
+            total + len * len
+        }
         val counts: HashMap<Int, Int> = HashMap()
         baked.forEach { counts[it] = counts[it]?.plus(1) ?: 1}
 
-        currentFitness = transitions * 5 + counts.map { (_, j) -> j * j }.fold(0, {a, b -> a + b})
+        currentFitness = subsequences * 5 + counts.map { (_, j) -> j * j }.fold(0, {a, b -> a + b})
 
         if (currentFitness < personalBestFitness) {
             personalBestBaked = baked
@@ -55,8 +67,9 @@ class ParticleStructure(length: Int, rand: Random): Particle {
 }
 
 fun generateStructure(segments: Int, rand: Random): List<Segment> {
-    val swarmSize = 10
-    val particle = applyPSO(Array(swarmSize, { ParticleStructure(segments, rand) }), rand, 100, 0.9, 0.7, 0.7)
+    val swarmSize = Settings.Structure.swarm_size
+    val particle = applyPSO(Array(swarmSize, { ParticleStructure(segments, rand) }), rand,
+            Settings.Structure.iterations, Settings.Structure.m, Settings.Structure.c1, Settings.Structure.c2)
     val notes = MutableList(swarmSize + 1, { rand.nextInt(7) })
     notes[swarmSize] = 0
     return List(segments, {

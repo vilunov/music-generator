@@ -12,10 +12,11 @@ class Chord(val steps: List<Int>, val scale: Scale) {
 }
 
 enum class ScaleType {
-    Major, Minor;
+    Major, Dorian, Minor;
 
     fun offsets() = when (this) {
         Major -> majorOffsets
+        Dorian -> dorianOffsets
         Minor -> minorOffsets
     }
 
@@ -27,6 +28,7 @@ enum class ScaleType {
 
     companion object {
         private val majorOffsets = intArrayOf(0, 2, 4, 5, 7, 9, 11).toList()
+        private val dorianOffsets = intArrayOf(0, 2, 3, 5, 7, 9, 10).toList()
         private val minorOffsets = intArrayOf(0, 2, 3, 5, 7, 8, 10).toList()
     }
 }
