@@ -1,7 +1,7 @@
 object Settings {
-    val output_file: String = "a_sharp_dorian_long.mid"
+    val output_file: String = "test.mid"
     val scale_root: Int = 70
-    val scale_type: ScaleType = ScaleType.Dorian
+    val scale_type: Int = ScaleType.Minor
     val segments: Int = 8
 
     //PSO #1
